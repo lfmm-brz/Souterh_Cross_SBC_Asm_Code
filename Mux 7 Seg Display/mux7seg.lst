@@ -1,0 +1,179 @@
+              	; --------------------------------------
+              	; zasm: assemble "mux7seg.asm"
+              	; date: 2025-04-10 18:01:02
+              	; --------------------------------------
+
+
+              	;***********************************************************************
+              	; MULTIPLEXING 7 SEG DISPLAYS - ROTATING TEXT
+              	; SOUTHERN CROSS SBC - SCM 1.8 - PCB 3.3
+              	;
+              	; Geany 1.38 - https://www.geany.org/
+              	;
+              	; zasm - Z80 Assembler – Version 4.4
+              	; https://k1.spdns.de/Develop/Projects/zasm/Documentation/index.html
+              	;***********************************************************************
+              	
+2000:         			   ORG	   2000H
+              		
+0084:         	DIS_SEG    EQU     84H             ;DISPLAY SEGMENT DRIVER LATCH
+0085:         	DIS_CATH   EQU     85H             ;DISPLAY CATHODE DRIVER LATCH
+              	
+              	;***********************************************************************
+              	; MAIN
+              	;***********************************************************************
+2000: 215A20  	START:		LD		HL,MY_TEXT				; HL has the first letter of my msg
+2003: 228420  				LD		(LTR_ON_FRST_DISP),HL	; LTR_ON_FRST_DISP has the 
+              												; letter on the first displsy
+              	
+2006: 11DE00  	LOOP1:		LD		DE, 00DEH				; Load DE with the value nnnnH (LOOP1 counter)	
+              				; LOOP2 starts here
+2009:         	LOOP2:
+              				; start of my routine inside of LOOP2
+2009: 2A8420  				LD		HL,(LTR_ON_FRST_DISP);
+              	
+200C: 7E      	LOOP3:      LD      A,(HL)				;Segments A,B,C,E,F and G
+200D: D384    	            OUT     (DIS_SEG),A			;Send it to LED Segments Latch
+200F: 3A8620  	            LD      A,(DISPLAY)			;Turn on display
+2012: D385    	            OUT     (DIS_CATH),A      
+2014: CD4120  	            CALL	DELAY
+2017: AF      				XOR		A
+2018: D385    	            OUT     (DIS_CATH),A		;Turn off Segments
+              	            
+201A: 23      	            INC		HL
+201B: CD3A20  	            CALL	CHKEND
+201E: 3A8620  				LD      A,(DISPLAY)
+2021: 0F      				RRCA						; shift to right to turn on the next display
+2022: 328620  				LD		(DISPLAY),A			;
+2025: 30E5    				JR		NC,LOOP3			; if it is not the most right display, do LOOP3
+2027: 3E20    				LD		A,20H				; if it was the most right display, start from the most left
+2029: 328620  				LD		(DISPLAY),A			;
+202C: 2A8420  				LD		HL,(LTR_ON_FRST_DISP) ;repeat the loop with the same letters           
+              				; end of my routine inside of LOOP2
+              	   
+202F: 1B      				DEC		DE					; Decrement DE (DE = DE - 1)
+2030: 7A      				LD      A,D					; Load the high byte of DE (D register) into A
+2031: B3      				OR      E					; Logical OR with the low byte (E register)
+2032: 20D5    				JR      NZ,LOOP2			; If DE is not zero (A != 0), jump to LoopStart
+              				; LOOP2 ends here
+              				
+2034: 23      				INC		HL						; since we have repeated the loop DE times
+2035: 228420  				LD		(LTR_ON_FRST_DISP),HL	; we go to the next letter
+2038: 18CC    	            JR      LOOP1
+              	;***********************************************************************
+              	
+              	;***********************************************************************
+              	; CHECK END OF MSG            
+              	;***********************************************************************
+203A: 7E      	CHKEND:		LD		A,(HL)				; load A with the actual letter
+203B: FE01    				CP		EOT					; check if it is the end of my string
+203D: CA0020  				JP		Z,START				; if yes we start again
+2040: C9      				RET
+              	;***********************************************************************
+              	
+              	;***********************************************************************
+              	; DELAY
+              	;***********************************************************************
+2041: F5      	DELAY:		PUSH	AF
+2042: C5      				PUSH	BC
+2043: D5      				PUSH	DE
+              				
+2044: 010700  				LD		BC,0007h			;Loads BC with hex 1000
+2047: 110700  	OUTER:		LD		DE,0007h			;Loads DE with hex 1000
+204A: 1B      	INNER:		DEC		DE					;Decrements DE
+204B: 7A      				LD		A,D					;Copies D into A
+204C: B3      				OR		E					;Bitwise OR of E with A (now, A = D | E)
+204D: C24A20  				JP		NZ,INNER			;Jumps back to Inner: label if A is not zero
+2050: 0B      				DEC		BC					;Decrements BC
+2051: 78      				LD		A,B
+2052: B1      				OR		C					;Bitwise OR of C with A (now, A = B | C)
+2053: C24720  				JP		NZ,OUTER
+              				
+2056: D1      				POP		DE
+2057: C1      				POP		BC
+2058: F1      				POP		AF
+2059: C9      				RET   
+              	;***********************************************************************
+              	
+              	;***********************************************************************
+              	; MY TEXT
+              	;***********************************************************************
+205A:         	MY_TEXT:
+205A: 00000000			DB CHAR_SPC, CHAR_SPC, CHAR_SPC, CHAR_SPC, CHAR_SPC;
+205E: 00      	
+205F: 6D3F3E78			DB CHAR_S, CHAR_O, CHAR_U, CHAR_T, CHAR_H, CHAR_E;
+2063: 7679    	
+2065: 33540039			DB CHAR_R, CHAR_N, CHAR_SPC, CHAR_C, CHAR_R, CHAR_O;
+2069: 333F    	
+206B: 6D6D006D			DB CHAR_S, CHAR_S, CHAR_SPC, CHAR_S, CHAR_B, CHAR_C;
+206F: 7C39    	
+2071: 006D3937			DB CHAR_SPC, CHAR_S, CHAR_C, CHAR_M, CHAR_1d;
+2075: 86      	
+2076: 7F007339			DB CHAR_8, CHAR_SPC, CHAR_P, CHAR_C, CHAR_B;
+207A: 7C      	
+207B: CF4F00  			DB CHAR_3d, CHAR_3, CHAR_SPC;
+207E: 00000000			DB CHAR_SPC, CHAR_SPC, CHAR_SPC, CHAR_SPC, CHAR_SPC, EOT;
+2082: 0001    	
+              	;***********************************************************************
+              	
+              	;***********************************************************************
+              	; VARIABLES
+              	;***********************************************************************
+2084: 0000    	LTR_ON_FRST_DISP	DW		0000H;
+2086: 20      	DISPLAY				DB		20H;
+              	;***********************************************************************
+              	
+              	;***********************************************************************
+              	; CHARACTERS DEFINITIONS
+              	;***********************************************************************            
+0077:         	CHAR_A	EQU 77H;
+007C:         	CHAR_B	EQU 7CH;
+0039:         	CHAR_C	EQU 39H;
+005E:         	CHAR_D	EQU 5EH;
+0079:         	CHAR_E	EQU 79H;
+0071:         	CHAR_F	EQU 71H;
+003D:         	CHAR_G	EQU 3DH;
+0076:         	CHAR_H	EQU 76H;
+0030:         	CHAR_I	EQU 30H;
+001E:         	CHAR_J	EQU 1EH;
+0075:         	CHAR_K	EQU 75H;
+0038:         	CHAR_L	EQU 38H;
+0037:         	CHAR_M	EQU 37H;
+0054:         	CHAR_N	EQU 54H;
+003F:         	CHAR_O	EQU 3FH;
+0073:         	CHAR_P	EQU 73H;
+0067:         	CHAR_Q	EQU 67H;
+0033:         	CHAR_R	EQU 33H;
+006D:         	CHAR_S	EQU 6DH;
+0078:         	CHAR_T	EQU 78H;
+003E:         	CHAR_U	EQU 3EH;
+0062:         	CHAR_V	EQU 62H;
+002A:         	CHAR_W	EQU 2AH;
+0076:         	CHAR_X	EQU 76H;
+006E:         	CHAR_Y	EQU 6EH;
+005B:         	CHAR_Z	EQU 5BH;
+003F:         	CHAR_0	EQU 3FH;
+0006:         	CHAR_1	EQU 06H;
+005B:         	CHAR_2	EQU 5BH;
+004F:         	CHAR_3	EQU 4FH;
+0066:         	CHAR_4	EQU 66H;
+006D:         	CHAR_5	EQU 6DH;
+007D:         	CHAR_6	EQU 7DH;
+0007:         	CHAR_7	EQU 07H;
+007F:         	CHAR_8	EQU 7FH;
+006F:         	CHAR_9	EQU 6FH;
+              	
+0086:         	CHAR_1d	EQU 86H;		1.
+00CF:         	CHAR_3d	EQU 0CFH;		3.
+              	
+0000:         	CHAR_SPC	EQU 00H;	space
+0080:         	CHAR_DOT	EQU 80H;	dot
+0001:         	EOT			EQU	01H;	end of text
+              	;***********************************************************************
+              	
+              		END
+              		
+
+
+total time: 0.0026 sec.
+no errors
