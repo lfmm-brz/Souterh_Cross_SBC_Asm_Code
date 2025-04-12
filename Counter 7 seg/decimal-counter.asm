@@ -41,7 +41,7 @@ CHK_REG_LH:							;check if low nibble of reg L is greatter than 09h
 		LD	A,L
 		AND 0FH						;mask 00001111b
 		CP	0AH						;if reg A == 0Ah it is greatter than 09h
-		JP	Z,INC_HG_NIB_REG_L		;low nibble reg L is greatter than 09h
+		CALL	Z,INC_HG_NIB_REG_L		;low nibble reg L is greatter than 09h
 		RET
 		
 INC_HG_NIB_REG_L:					;low nibble of L is greatter than 09h
@@ -49,7 +49,7 @@ INC_HG_NIB_REG_L:					;low nibble of L is greatter than 09h
 		AND 0F0H					;mask 11110000b
 		ADD 10H						;increment high nibble of reg L
 		CP	0A0H					;if reg A == A0h it is greatter than 09h
-		JP	Z,INC_LW_NIB_REG_H		;high nibble reg L is greatter than 09h
+		CALL	Z,INC_LW_NIB_REG_H		;high nibble reg L is greatter than 09h
 		LD 	L,A						;if not, recover value of reg L
 		RET
 		
@@ -59,7 +59,7 @@ INC_LW_NIB_REG_H:					;high nibble of L is greatter than 09h
 		LD	A,H
 		AND 0FH						;mask 00001111b
 		CP	0AH						;if reg A == 0Ah it is greatter than 09h
-		JP	Z,INC_HG_NIB_REG_H		;low nibble reg H is greatter than 09h
+		CALL	Z,INC_HG_NIB_REG_H		;low nibble reg H is greatter than 09h
 		RET
 		
 INC_HG_NIB_REG_H:					;low nibble of H is greatter than 09h
@@ -67,7 +67,7 @@ INC_HG_NIB_REG_H:					;low nibble of H is greatter than 09h
 		AND	0F0H					;mask 11110000b
 		ADD	10H						;increment high nibble of reg H
 		CP	0A0H					;if reg A == A0h it is greatter than 09h
-		JP	Z,RST_REG_H				;high nibble reg H is greatter than 09h
+		CALL	Z,RST_REG_H				;high nibble reg H is greatter than 09h
 		LD	H,A						;if not, recover value of reg H
 		RET
 

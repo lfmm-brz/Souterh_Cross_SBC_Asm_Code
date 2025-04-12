@@ -41,7 +41,7 @@
   41:	2016  7D      			LD	A,L
   42:	2017  E60F    			AND 0FH						;mask 00001111b
   43:	2019  FE0A    			CP	0AH						;if reg A == 0Ah it is greatter than 09h
-  44:	201B  CA1F20  			JP	Z,INC_HG_NIB_REG_L		;low nibble reg L is greatter than 09h
+  44:	201B  CC1F20  			CALL	Z,INC_HG_NIB_REG_L		;low nibble reg L is greatter than 09h
   45:	201E  C9      			RET
   46:					
   47:	201F          	INC_HG_NIB_REG_L:					;low nibble of L is greatter than 09h
@@ -49,7 +49,7 @@
   49:	2020  E6F0    			AND 0F0H					;mask 11110000b
   50:	2022  C610    			ADD 10H						;increment high nibble of reg L
   51:	2024  FEA0    			CP	0A0H					;if reg A == A0h it is greatter than 09h
-  52:	2026  CA2B20  			JP	Z,INC_LW_NIB_REG_H		;high nibble reg L is greatter than 09h
+  52:	2026  CC2B20  			CALL	Z,INC_LW_NIB_REG_H		;high nibble reg L is greatter than 09h
   53:	2029  6F      			LD 	L,A						;if not, recover value of reg L
   54:	202A  C9      			RET
   55:					
@@ -59,7 +59,7 @@
   59:	202E  7C      			LD	A,H
   60:	202F  E60F    			AND 0FH						;mask 00001111b
   61:	2031  FE0A    			CP	0AH						;if reg A == 0Ah it is greatter than 09h
-  62:	2033  CA3720  			JP	Z,INC_HG_NIB_REG_H		;low nibble reg H is greatter than 09h
+  62:	2033  CC3720  			CALL	Z,INC_HG_NIB_REG_H		;low nibble reg H is greatter than 09h
   63:	2036  C9      			RET
   64:					
   65:	2037          	INC_HG_NIB_REG_H:					;low nibble of H is greatter than 09h
@@ -67,7 +67,7 @@
   67:	2038  E6F0    			AND	0F0H					;mask 11110000b
   68:	203A  C610    			ADD	10H						;increment high nibble of reg H
   69:	203C  FEA0    			CP	0A0H					;if reg A == A0h it is greatter than 09h
-  70:	203E  CA4320  			JP	Z,RST_REG_H				;high nibble reg H is greatter than 09h
+  70:	203E  CC4320  			CALL	Z,RST_REG_H				;high nibble reg H is greatter than 09h
   71:	2041  67      			LD	H,A						;if not, recover value of reg H
   72:	2042  C9      			RET
   73:			
