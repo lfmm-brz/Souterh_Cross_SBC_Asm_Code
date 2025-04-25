@@ -1,0 +1,370 @@
+   1:			;****************************************************
+   2:			; Southern Cross Monitor version 1.8 demo program
+   3:			; Counting in Decimal Using Instruction DAA
+   4:			;
+   5:			; Geany 1.38 - https://www.geany.org/
+   6:			;
+   7:			; zmac version 18oct2022 http://48k.ca/zmac.html
+   8:			;****************************************************
+   9:			
+  10:	2000          			ORG		2000h
+  11:			
+  12:			;****************************************************
+  13:			; MAIN
+  14:			;****************************************************
+  15:	2000          	START:
+  16:	2000  0E04    			LD	C,CLRBUF	;clear the display buffer
+  17:	2002  F7      			RST	30H
+  18:			
+  19:	2003  210000  			LD	HL,0000H	;clear the counter, you can preset the counter here
+  20:					
+  21:	2006          	COUNT1:					;address display
+  22:	2006  0E02    			LD	C,DISADD	;convert HL to 7 segment code
+  23:	2008  F7      			RST 30H	        ;and put in display buffer
+  24:			
+  25:	2009  06FF    			LD	B,0FFH		;scan the display B times, change counting speed here
+  26:							
+  27:	200B          	LOOP:	
+  28:	200B  0E05    			LD	C,SCAND	    ;scan the display
+  29:	200D  F7      			RST	30H
+  30:	200E  10FB    			DJNZ	LOOP
+  31:			
+  32:	2010  CD1A20  			CALL REGLBCD	; will work on reg L
+  33:	2013  FE00    			CP	00H			; reg A (reg L) is equal to zero?
+  34:	2015  CC1F20  			CALL Z,REGHBCD	; if yes, we work on reg H
+  35:			
+  36:	2018  18EC    			JR	COUNT1
+  37:			;****************************************************
+  38:			
+  39:			;****************************************************
+  40:			; DAA - ADJUSTS THE ACCUMULATOR FOR BCD
+  41:			; REGISTER L HOLDS TENS AND UNITS
+  42:			;****************************************************
+  43:	201A          	REGLBCD:
+  44:	201A  7D      			LD	A,L
+  45:	201B  3C      			INC	A
+  46:	201C  27      			DAA
+  47:	201D  6F      			LD	L,A
+  48:	201E  C9      			RET
+  49:			;****************************************************
+  50:			
+  51:			;****************************************************
+  52:			; DAA - ADJUSTS THE ACCUMULATOR FOR BCD
+  53:			; REGISTER H HOLDS THOUSANDS AND HUNDREDS
+  54:			;****************************************************
+  55:	201F          	REGHBCD:
+  56:	201F  7C      			LD	A,H
+  57:	2020  3C      			INC	A
+  58:	2021  27      			DAA
+  59:	2022  67      			LD	H,A
+  60:	2023  C9      			RET
+  61:			;****************************************************
+  62:			
+  63:			;****************************************************
+  64:					INCLUDE		"SCM18_Include.asm"
+**** /home/fernando/Documents/Z80-asm/SCZ80/decimal-counter/SCM18_Include.asm ****
+   1:			;--------------------------------------------
+   2:			; S O U T H E R N   C R O S S   M O N I T O R
+   3:			;--------------------------------------------
+   4:			;
+   5:			;  MONITOR DEFINITIONS FILE 
+   6:			;  Version 1.8
+   7:			;
+   8:			; WRITTEN BY CRAIG R. S. JONES
+   9:			; MELBOURNE, AUSTRALIA.
+  10:			;
+  11:			;---------------
+  12:			; RAM MEMORY MAP
+  13:			;---------------
+  14:	2000          	BOTRAM	.EQU	2000H	;BOTTOM OF SRAM
+  15:	3FFF          	TOPRAM	.EQU	3FFFH	;TOP OF SRAM
+  16:			;
+  17:	3F00          	VARBLS	.EQU	TOPRAM-0FFH	;MONITOR VARIABLES
+  18:	3E00          	BUFFER	.EQU	VARBLS-0100H	;GENERAL PURPOSE BUFFER AREA
+  19:	3C00          	ISTACK	.EQU	BUFFER - 0200H	;INITIAL MONITOR STACK
+  20:			;
+  21:	3800          	RAMEND	.EQU	ISTACK-0400H	;END OF USER RAM
+  22:	2000          	RAMSRT	.EQU	BOTRAM	;START OF USER RAM
+  23:			;
+  24:			; BIT BANG BAUD RATE CONSTANTS
+  25:			;
+  26:	0220          	B300	.EQU	0220H	;300 BAUD
+  27:	0080          	B1200	.EQU	0080H	;1200 BAUD
+  28:	003F          	B2400	.EQU	003FH	;2400 BAUD
+  29:	001B          	B4800	.EQU	001BH	;4800 BAUD
+  30:	000B          	B9600	.EQU	000BH	;9600 BAUD
+  31:			;
+  32:			; KEY CODES
+  33:			;
+  34:	0010          	KEYFN	.EQU	10H	;FN OR GO KEY
+  35:	0011          	KEYAD	.EQU	11H	;ADDRESS KEY
+  36:	0012          	KEYINC	.EQU	12H	;PLUS KEY
+  37:	0013          	KEYDEC	.EQU	13H	;MINUS KEY
+  38:			;-------------------------
+  39:			; MONITOR GLOBAL VARIABLES
+  40:			;-------------------------
+  41:			;
+  42:	3F00          		.ORG	VARBLS
+  43:			;
+  44:			;SERIAL MONITOR VARIABLES
+  45:			;
+  46:	3F00          	VARIDX	.BLOCK	16	;RESERVE SOME SPACE FOR INDEXED VARIABLES (SEE INTELH)
+  47:	3F10          	SPSAVE	.BLOCK	2	;SAVE THE STACK POINTER
+  48:	3F12          	ADDR	.BLOCK	2	;THE ADDRESS
+  49:	3F14          	DATA	.BLOCK	1	;THE DATA
+  50:			;
+  51:	3F15          	FUNTBL	.BLOCK	 2	;FN TABLE ADDRESS
+  52:			;
+  53:			; DALLAS SMARTWATCH REGISTERS
+  54:			;
+  55:	3F17          	CALMDE	.BLOCK	2	;CALENDAR MODE
+  56:	3F19          	SWREG0	.BLOCK	1	;10THS, 100THS
+  57:	3F1A          	SWREG1	.BLOCK	1	;SECONDS
+  58:	3F1B          	SWREG2	.BLOCK	1	;MINUTES
+  59:	3F1C          	SWREG3	.BLOCK	1	;HOURS
+  60:	3F1D          	SWREG4	.BLOCK	1	;DAY
+  61:	3F1E          	SWREG5	.BLOCK	1	;DATE
+  62:	3F1F          	SWREG6	.BLOCK	1	;MONTH
+  63:	3F20          	SWREG7	.BLOCK	1	;YEAR
+  64:			;
+  65:	3F21          	BAUD	.BLOCK	2	;BIT BANG BAUD RATE
+  66:	3F23          	KEYTIM	.BLOCK	2	;BEEP DELAY
+  67:	3F25          	SPTEMP	.BLOCK	2	;TEMP SYSTEM CALL SP
+  68:			;
+  69:			; BLOCK FUNCTIONS
+  70:			;
+  71:	3F27          	COUNT	.BLOCK	2	;NUMBER OF BYTES TO MOVE
+  72:	3F29          	BLKSRT	.BLOCK	2	;BLOCK START ADDRESS
+  73:	3F2B          	BLKEND	.BLOCK	2	;BLOCK END ADDRESS
+  74:	3F2D          	BLKDST	.BLOCK	2	;DESTINATION ADDRESS
+  75:			;
+  76:	3F2F          	FUNJMP	.BLOCK	2	;FN FN KEY JUMP ADDRESS
+  77:			;
+  78:			; DISPLAY SCAN REGISTERS
+  79:			;
+  80:	3F31          	DISBUF	.BLOCK	6	;DISPLAY BUFFER
+  81:	3F37          	ONTIM	.BLOCK	1	;DISPLAY SCAN ON TIME
+  82:	3F38          	OFTIM	.BLOCK	1	;DISPLAY SCAN OFF TIME
+  83:			;
+  84:			; MONITOR VARIABLES
+  85:			;
+  86:	3F39          	MODE	.BLOCK	2	;DISPLAY MODE
+  87:	3F3B          	ADRESS	.BLOCK	2	;USER ADDRESS
+  88:	3F3D          	KEYDEL	.BLOCK	2	;AUTO INCREMENT DELAY
+  89:			;
+  90:			; TEMPORARY REGISTER STORAGE
+  91:			;
+  92:	3F3F          	REGPNT	.BLOCK	2	;REGISTER POINTER
+  93:	3F41          	TMPPC	.BLOCK	2	;PROGRAM COUNTER
+  94:	3F43          	TMPAF	.BLOCK	2	;ACCUMULATOR,FLAG
+  95:	3F45          	TMPBC	.BLOCK	2	;BC REGISTER PAIR
+  96:	3F47          	TMPDE	.BLOCK	2	;DE REGISTER PAIR
+  97:	3F49          	TMPHL	.BLOCK	2	;HL REGISTER PAIR
+  98:	3F4B          	TMPIX	.BLOCK	2	;INDEX REGISTER X
+  99:	3F4D          	TMPIY	.BLOCK	2	;INDEX REGISTER Y
+ 100:	3F4F          	TMPSP	.BLOCK	2	;STACK POINTER
+ 101:			;
+ 102:			; RESTART JUMP TABLE AND HARWARE TEST
+ 103:			;
+ 104:	3F51          	RST08	.BLOCK	2	;RESTART 08H JUMP
+ 105:	3F53          	RST10	.BLOCK	2	;RESTART 10H JUMP
+ 106:	3F55          	RST18	.BLOCK	2	;RESTART 18H JUMP
+ 107:	3F57          	RST20	.BLOCK	2	;RESTART 20H JUMP
+ 108:	3F59          	RST28	.BLOCK	2	;RESTART 28H JUMP
+ 109:	3F5B          	RST38	.BLOCK	2	;INT INTERRUPT JUMP
+ 110:	3F5D          	RST66	.BLOCK	2	;NMI INTERRUPT JUMP
+ 111:	3F5F          	RAMSUM	.BLOCK	1	;USER RAM CHECKSUM
+ 112:	3F60          	DALLAS	.BLOCK	1	;RAM TEST LOCATION
+ 113:	3F61          	SYSERR	.BLOCK	2	;SYSTEM CALL ERROR JUMP
+ 114:			;--------------------
+ 115:			; SYSTEM CALL NUMBERS
+ 116:			;--------------------
+ 117:			;
+ 118:			;  LD   C,SYSTEM CALL NUMBER
+ 119:			;  RST  30H
+ 120:			;
+ 121:	0000          	MAIN	.EQU	0	;RESTART MONITOR
+ 122:	0001          	VERS	.EQU	1	;RETURNS MONITOR VERSION
+ 123:	0002          	DISADD	.EQU	2	;ADDRESS -> DISPLAY BUFFER
+ 124:	0003          	DISBYT	.EQU	3	;DATA -> DISPLAY BUFFER
+ 125:	0004          	CLRBUF	.EQU	4	;CLEAR DISPLAY BUFFER
+ 126:	0005          	SCAND	.EQU	5	;SCAN DISPLAY
+ 127:	0006          	CONBYT	.EQU	6	;BYTE -> DISPLAY CODE
+ 128:	0007          	CONVHI	.EQU	7	;HI NYBBLE -> DISPLAY CODE
+ 129:	0008          	CONVLO	.EQU	8	;LO NYBBLE - > DISPLAY CODE
+ 130:	0009          	SKEYIN	.EQU	9	;SCAN DISPLAY UNTIL KEY PRESS
+ 131:	000A          	SKEYRL	.EQU	10	;SCAN DISPLAY UNTIL KEY RELEASE
+ 132:	000B          	KEYIN	.EQU	11	;WAIT FOR KEY PRESS
+ 133:	000C          	KEYREL	.EQU	12	;WAIT FOR KEY RELEASE
+ 134:	000D          	MENU	.EQU	13	;SELECT ENTRY FROM MENU
+ 135:	000E          	CHKSUM	.EQU	14	;CALCULATE CHECKSUM
+ 136:	000F          	MUL16	.EQU	15	;16 BIT MULTIPLY
+ 137:	0010          	RAND	.EQU	16	;GENERATE RANDOM NUMBER
+ 138:	0011          	INDEXB	.EQU	17	;INDEX INTO BYTE TABLE
+ 139:	0012          	INDEXW	.EQU	18	;INDEX INTO WORD TABLE
+ 140:	0013          	MUSIC	.EQU	19	;PLAY MUSIC TABLE
+ 141:	0014          	TONE	.EQU	20	;PLAY A NOTE
+ 142:	0015          	BEEP	.EQU	21	;KEY ENTRY BEEP
+ 143:	0016          	SKATE	.EQU	22	;SCAN 8X8 DISPLAY
+ 144:	0017          	TXDATA	.EQU	23	;TRANSMIT SERIAL BYTE
+ 145:	0018          	RXDATA	.EQU	24	;RECEIVE SERIAL BYTE
+ 146:	0019          	ASCHEX	.EQU	25	;ASCII CODE -> HEX
+ 147:	001A          	WWATCH	.EQU	26	;WRITE TO SMART WATCH
+ 148:	001B          	RWATCH	.EQU	27	;READ FROM SMART WATCH
+ 149:	001C          	ONESEC	.EQU	28	;ONE SECOND DELAY USING SMARTWATCH
+ 150:	001D          	RLSTEP	.EQU	29	;RELAY S.EQUENCER
+ 151:	001E          	DELONE	.EQU	30	;ONE SECOND DELAY LOOP
+ 152:	001F          	SCANKEY .EQU	31	;SCAN THE KEYBOARD
+ 153:	0020          	INTELH	.EQU	32	;RECEIVE INTEL HEX FILE
+ 154:	0021          	SPLIT	.EQU	33	;SEPARATE A BYTE INTO NYBBLES
+ 155:	0022          	SNDMSG	.EQU	34	;SND ZERO TERMINATED STRING TO SERIAL PORT
+ 156:	0023          	BITASC	.EQU	35	;CONVERT A BYTE INTO AN ASCII STRING OF ONES AND ZEROES
+ 157:	0024          	WRDASC	.EQU	36	;CONVERT A WORD TO ASCII
+ 158:	0025          	BYTASC	.EQU	37	;CONVERT A BYTE TO ASCII
+ 159:	0026          	NYBASC	.EQU	38	;CONVERT A NYBBLE TO ASCII
+ 160:	0027          	PCBTYP	.EQU	39	;RETURNS BOARD TYPE, SC OR TEC-1F
+ 161:	0028          	PRNTSZ	.EQU	40	;INLINE SERIAL PRINT STRING
+ 162:	0029          	KBDTYP	.EQU	41	;RETURNS KEYBOARD TYPE
+ 163:	002A          	UPDATE	.EQU	42  ;UPDATE DISPLAY AND MODE DECIMAL POINT SEGMENTS
+ 164:	002B          	VARRAM	.EQU	43	;RETURN BASE VARIABLE ADDRESS
+ 165:	002C          	SERINI	.EQU	44	;INITIALISE BIT BANG SERIAL PORT
+ 166:	002D          	SCBUG	.EQU	45	;SCBUG SERIAL MONITOR
+ 167:			
+ 168:			;END OF INCLUDE FILE
+**** /home/fernando/Documents/Z80-asm/SCZ80/decimal-counter/decimal-counter-DAA.asm ****
+  65:			;****************************************************
+  66:			
+  67:			;****************************************************
+  68:			; Detailed info DAA
+  69:			; http://www.z80.info/z80syntx.htm#DAA
+  70:			;****************************************************
+  71:			
+  72:	3F63          		END
+
+
+
+Statistics:
+
+     4	passes
+     0	jr promotions
+   114	symbols
+    36	bytes
+
+
+
+Symbol Table:
+
+ADDR            3F12      16146
+ADRESS          3F3B      16187
+ASCHEX         =19        25
+B1200          =80        128
+B2400          =3F        63
+B300           = 220      544
+B4800          =1B        27
+B9600          =0B        11
+BAUD            3F21      16161
+BEEP           =15        21
+BITASC         =23        35
+BLKDST          3F2D      16173
+BLKEND          3F2B      16171
+BLKSRT          3F29      16169
+BOTRAM         =2000      8192
+BUFFER         =3E00      15872
+BYTASC         =25        37
+CALMDE          3F17      16151
+CHKSUM         =0E        14
+CLRBUF         =04        4
+CONBYT         =06        6
+CONVHI         =07        7
+CONVLO         =08        8
+COUNT           3F27      16167
+COUNT1          2006      8198
+DALLAS          3F60      16224
+DATA            3F14      16148
+DELONE         =1E        30
+DISADD         =02        2
+DISBUF          3F31      16177
+DISBYT         =03        3
+FUNJMP          3F2F      16175
+FUNTBL          3F15      16149
+INDEXB         =11        17
+INDEXW         =12        18
+INTELH         =20        32
+ISTACK         =3C00      15360
+KBDTYP         =29        41
+KEYAD          =11        17
+KEYDEC         =13        19
+KEYDEL          3F3D      16189
+KEYFN          =10        16
+KEYIN          =0B        11
+KEYINC         =12        18
+KEYREL         =0C        12
+KEYTIM          3F23      16163
+LOOP            200B      8203
+MAIN           =00        0
+MENU           =0D        13
+MODE            3F39      16185
+MUL16          =0F        15
+MUSIC          =13        19
+NYBASC         =26        38
+OFTIM           3F38      16184
+ONESEC         =1C        28
+ONTIM           3F37      16183
+PCBTYP         =27        39
+PRNTSZ         =28        40
+RAMEND         =3800      14336
+RAMSRT         =2000      8192
+RAMSUM          3F5F      16223
+RAND           =10        16
+REGHBCD         201F      8223
+REGLBCD         201A      8218
+REGPNT          3F3F      16191
+RLSTEP         =1D        29
+RST08           3F51      16209
+RST10           3F53      16211
+RST18           3F55      16213
+RST20           3F57      16215
+RST28           3F59      16217
+RST38           3F5B      16219
+RST66           3F5D      16221
+RWATCH         =1B        27
+RXDATA         =18        24
+SCAND          =05        5
+SCANKEY        =1F        31
+SCBUG          =2D        45
+SERINI         =2C        44
+SKATE          =16        22
+SKEYIN         =09        9
+SKEYRL         =0A        10
+SNDMSG         =22        34
+SPLIT          =21        33
+SPSAVE          3F10      16144
+SPTEMP          3F25      16165
+START           2000      8192
+SWREG0          3F19      16153
+SWREG1          3F1A      16154
+SWREG2          3F1B      16155
+SWREG3          3F1C      16156
+SWREG4          3F1D      16157
+SWREG5          3F1E      16158
+SWREG6          3F1F      16159
+SWREG7          3F20      16160
+SYSERR          3F61      16225
+TMPAF           3F43      16195
+TMPBC           3F45      16197
+TMPDE           3F47      16199
+TMPHL           3F49      16201
+TMPIX           3F4B      16203
+TMPIY           3F4D      16205
+TMPPC           3F41      16193
+TMPSP           3F4F      16207
+TONE           =14        20
+TOPRAM         =3FFF      16383
+TXDATA         =17        23
+UPDATE         =2A        42
+VARBLS         =3F00      16128
+VARIDX          3F00      16128
+VARRAM         =2B        43
+VERS           =01        1
+WRDASC         =24        36
+WWATCH         =1A        26
