@@ -13,25 +13,25 @@
   13:			; MAIN
   14:			;****************************************************
   15:	2000          	START:
-  16:	2000  0E04    			LD C,CLRBUF		;clear the display buffer
+  16:	2000  0E04    			LD C,CLRBUF     ;clear the display buffer
   17:	2002  F7      			RST 30H
   18:			
-  19:	2003  210000  			LD HL,0000H		;clear the counter, you can preset the counter here
+  19:	2003  210000  			LD HL,0000H      ;clear the counter, you can preset the counter here
   20:					
-  21:	2006          	COUNT1:					;address display
-  22:	2006  0E02    			LD C,DISADD		;convert HL to 7 segment code
-  23:	2008  F7      			RST 30H			;and put in display buffer
+  21:	2006          	COUNT1:                 ;address display
+  22:	2006  0E02    			LD C,DISADD     ;convert HL to 7 segment code
+  23:	2008  F7      			RST 30H         ;and put in display buffer
   24:			
-  25:	2009  06FF    			LD B,0FFH		;scan the display B times, change counting speed here
+  25:	2009  06FF    			LD B,0FFH       ;scan the display B times, change counting speed here
   26:							
   27:	200B          	LOOP:	
-  28:	200B  0E05    			LD C,SCAND		;scan the display
+  28:	200B  0E05    			LD C,SCAND      ;scan the display
   29:	200D  F7      			RST 30H
   30:	200E  10FB    			DJNZ LOOP
   31:			
-  32:	2010  CD1A20  			CALL REGLBCD	;will work on reg L
-  33:	2013  FE00    			CP 00H			;reg A (reg L) is equal to zero?
-  34:	2015  CC1F20  			CALL Z,REGHBCD	;if yes, we work on reg H
+  32:	2010  CD1A20  			CALL REGLBCD    ;will work on reg L
+  33:	2013  FE00    			CP 00H          ;reg A (reg L) is equal to zero?
+  34:	2015  CC1F20  			CALL Z,REGHBCD  ;if yes, we work on reg H
   35:			
   36:	2018  18EC    			JR COUNT1
   37:			;****************************************************
