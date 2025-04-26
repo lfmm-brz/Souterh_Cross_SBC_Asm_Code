@@ -20,15 +20,15 @@ START:
 		
 COUNT1:					;address display
 		LD C,DISADD		;convert HL to 7 segment code
-		RST 30H	        ;and put in display buffer
+		RST 30H			;and put in display buffer
 
 		LD B,0FFH		;scan the display B times, change counting speed here
 				
 LOOP:	
-		LD C,SCAND	    ;scan the display
+		LD C,SCAND		;scan the display
 		RST 30H
 		DJNZ LOOP
-
+		
 		CALL REGLBCD	;will work on reg L
 		CP 00H			;reg A (reg L) is equal to zero?
 		CALL Z,REGHBCD	;if yes, we work on reg H
