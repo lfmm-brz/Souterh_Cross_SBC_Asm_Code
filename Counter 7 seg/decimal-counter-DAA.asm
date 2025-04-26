@@ -28,7 +28,7 @@ LOOP:
 		LD C,SCAND		;scan the display
 		RST 30H
 		DJNZ LOOP
-		
+
 		CALL REGLBCD	;will work on reg L
 		CP 00H			;reg A (reg L) is equal to zero?
 		CALL Z,REGHBCD	;if yes, we work on reg H

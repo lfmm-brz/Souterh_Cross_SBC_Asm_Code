@@ -28,7 +28,7 @@
   28:	200B  0E05    			LD C,SCAND		;scan the display
   29:	200D  F7      			RST 30H
   30:	200E  10FB    			DJNZ LOOP
-  31:					
+  31:			
   32:	2010  CD1A20  			CALL REGLBCD	;will work on reg L
   33:	2013  FE00    			CP 00H			;reg A (reg L) is equal to zero?
   34:	2015  CC1F20  			CALL Z,REGHBCD	;if yes, we work on reg H
