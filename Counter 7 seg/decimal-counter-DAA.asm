@@ -16,9 +16,9 @@ START:
 		LD C,CLRBUF     ;clear the display buffer
 		RST 30H
 
-		LD HL,0000H      ;clear the counter, you can preset the counter here
+		LD HL,0000H     ;clear the counter, you can preset the counter here
 		
-COUNT1:                 ;address display
+COUNT1:
 		LD C,DISADD     ;convert HL to 7 segment code
 		RST 30H         ;and put in display buffer
 
