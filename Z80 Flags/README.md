@@ -1,1 +1,1 @@
-
+This spreadsheet is intended to help people use the Z80 flags. When using single step (RST 38H) in Southern Cross the AF register pair is shown in the format 0A08 AF, for the beginner it can be difficult to know which flags are affected, using the spreadsheet, just type the content 08 (example above) in the gray cell and that's it.
